@@ -1,6 +1,6 @@
 # Vantara — Smart Supply Chain Intelligence Platform
 
-**End-to-end supply chain analytics: 180,519 order-line records cleaned in Python, modeled in PostgreSQL, analyzed in SQL, cross-validated in Excel, and delivered as a live executive Power BI dashboard — uncovering a hidden Q4 revenue collapse behind rising order volume.**
+End-to-end supply chain analytics on 180,519 order-line records — cleaned in Python, modeled in PostgreSQL, analyzed in SQL, cross-validated in Excel, and delivered as a live executive Power BI dashboard, uncovering a hidden Q4 revenue collapse behind rising order volume.
 
 ![Python](https://img.shields.io/badge/Python-Pandas-3776AB?logo=python&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Star_Schema-4169E1?logo=postgresql&logoColor=white)
@@ -16,19 +16,31 @@
 ---
 
 ## Table of Contents
-
-- [Business Problem & Dataset](#business-problem--dataset)
+- [Overview](#overview)
+- [Problem Statement](#problem-statement)
+- [Dataset Description](#dataset-description)
 - [Tools & Technologies](#tools--technologies)
 - [Project Structure](#project-structure)
-- [Key Insights & Visuals](#key-insights--visuals)
-- [How to Run](#how-to-run)
-- [Future Work & Contact](#future-work--contact)
+- [Data Cleaning & Preparation](#data-cleaning--preparation)
+- [EDA & Key Insights](#eda--key-insights)
+- [Dashboard](#dashboard)
+- [How to Run This Project](#how-to-run-this-project)
+- [Final Recommendations & Future Work](#final-recommendations--future-work)
+- [Author & Contact](#author--contact)
 
 ---
 
-## Business Problem & Dataset
+## Overview
 
 Vantara is a supply chain and logistics company selling across USCA, Europe, LATAM, Africa, and Pacific Asia. Order volume grew year over year, but leadership noticed that growth wasn't always translating into more profit, and had no clear view of delivery reliability or true customer loyalty.
+
+This project takes raw order, customer, product, and location data through cleaning, modeling, and SQL analysis into a decision-ready Power BI dashboard — cross-validated at every step, so every headline number is checked, not just displayed.
+
+**Stakeholders:** CEO (growth direction), CFO (revenue & margin), VP Operations (delivery reliability), VP Customer Success (retention), Marketing (region/product/segment prioritization).
+
+---
+
+## Problem Statement
 
 Leadership observed:
 - Order volume kept increasing, but revenue growth slowed and in some months reversed sharply.
@@ -40,11 +52,23 @@ Leadership observed:
 
 I chose this dataset deliberately, not for convenience, but because it contains a genuine hidden problem rather than a pre-labeled one. Total order volume rises every year — a shallow read says "the business is healthy." Only by separating revenue-per-order, order-status mix, and delivery performance does the real story emerge: a sharp **Q4 2017 revenue collapse** sitting directly underneath rising volume. The data also had a wrong answer already sitting in it — an early reference figure put customer loyalty at 76%. Rather than accept it, I recalculated it from first principles, independently, in SQL, DAX, and Excel, before trusting it.
 
-**Dataset:** [DataCo Smart Supply Chain for Big Data Analysis](https://www.kaggle.com/datasets/shashwatwork/dataco-smart-supply-chain-for-big-data-analysis) (Kaggle) — 180,519 order-line records, 2015–2017, covering order, customer, product, shipping, payment, and location details.
-
 **Scope:** full calendar years 2015–2017; year-over-year and month-over-month comparisons; profitability by region/category/segment; delivery performance by shipping mode and status; customer retention and segment behavior. *Out of scope:* the partial trailing month (Jan 2018), real-time tracking, and direct operational changes — this project recommends, it doesn't execute.
 
-**Stakeholders:** CEO (growth direction), CFO (revenue & margin), VP Operations (delivery reliability), VP Customer Success (retention), Marketing (region/product/segment prioritization).
+---
+
+## Dataset Description
+
+**Source:** [DataCo Smart Supply Chain for Big Data Analysis](https://www.kaggle.com/datasets/shashwatwork/dataco-smart-supply-chain-for-big-data-analysis) (Kaggle) — 180,519 order-line records, 2015–2017, covering order, customer, product, shipping, payment, and location details.
+
+| File | Description |
+|---|---|
+| `Data/Raw/` | Original Kaggle CSVs (180,519 order-line records) |
+| `Data/clean/dim_customers` | Customer dimension (20,652 unique customers) |
+| `Data/clean/dim_date` | Date dimension |
+| `Data/clean/dim_location` | Location/region dimension |
+| `Data/clean/dim_products` | Product dimension (118 unique products) |
+| `Data/clean/fact_orders` | Cleaned order fact table (63,629 orders) |
+| `Data/Vantara_Analysis_Model.xlsx` | Independent Excel cross-check model |
 
 ---
 
@@ -66,14 +90,14 @@ I chose this dataset deliberately, not for convenience, but because it contains 
 
 ```
 Vantara-Smart-Supply-Chain-Intelligence-Platform/
-├── Dashboard/          → .pbit, .pbix, PDF export
+├── Dashboard/        → .pbit, .pbix, PDF export
 ├── Data/
-│   ├── Raw/            → original Kaggle CSVs
-│   └── clean/          → dim_customers, dim_date, dim_location, dim_products, fact_orders, Excel model
-├── Database/           → Vantara_Database_Schema.sql, README
-├── Docs/                → BRD, SQL findings report, presentation
-├── Notebook/            → Data_Preparation.ipynb
-├── SQL_Analysis/        → Vantara_Analysis_Queries.sql
+│   ├── Raw/          → original Kaggle CSVs
+│   └── clean/        → dim_customers, dim_date, dim_location, dim_products, fact_orders, Excel model
+├── Database/         → Vantara_Database_Schema.sql, README
+├── Docs/             → BRD, SQL findings report, presentation
+├── Notebook/         → Data_Preparation.ipynb
+├── SQL_Analysis/     → Vantara_Analysis_Queries.sql
 ├── Screenshots/
 ├── LICENSE
 └── README.md
@@ -81,7 +105,17 @@ Vantara-Smart-Supply-Chain-Intelligence-Platform/
 
 ---
 
-## Key Insights & Visuals
+## Data Cleaning & Preparation
+
+- Removed duplicate and null-heavy rows from the raw Kaggle CSV using Python (Pandas) in `Notebook/Data_Preparation.ipynb`.
+- Split the flat raw file into a star-schema model: one fact table (`fact_orders`) and four dimension tables (`dim_customers`, `dim_date`, `dim_location`, `dim_products`).
+- Standardized date formats, fixed inconsistent category labels, and handled outlier values in delivery-time and sales columns.
+- Validated row counts and key relationships (foreign keys) between fact and dimension tables before loading into PostgreSQL.
+- Cross-checked every headline KPI in Excel (independent pivot tables) against SQL output before trusting it — this is how the 76% vs. 56.98% customer-loyalty discrepancy was caught.
+
+---
+
+## EDA & Key Insights
 
 **Executive KPIs (Overview page):**
 
@@ -110,6 +144,38 @@ Vantara-Smart-Supply-Chain-Intelligence-Platform/
 11. **Customer value is broad, not concentrated.** Across 20,652 customers, average lifetime value is consistent (~$1.59K–$1.6K) across all three segments — Consumer's lead comes from volume, not higher per-customer spend.
 12. **Puerto Rico and California are the top-contributing states** by both customer count and revenue.
 
+---
+
+## Dashboard
+
+The Power BI report is a 3-page branded dashboard, published live via Microsoft Fabric:
+- **Overview:** headline KPIs, revenue trend, order volume
+- **Delivery Performance:** late-delivery rate, shipping-mode comparison, regional breakdown
+- **Customer Insights:** repeat-customer rate, segment behavior, customer lifetime value
+
+**[🔗 Explore the live dashboard](https://app.fabric.microsoft.com/links/7kEQOVZFb_?ctid=e93d71d6-b5c0-4b78-a861-d9964ecdfcd6&pbi_source=linkShare)** — no install required.
+
+![Overview](Screenshots/Overview.png)
+
+---
+
+## How to Run This Project
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/seema-kri/Vantara-Smart-Supply-Chain-Intelligence-Platform.git
+   ```
+2. Read `Docs/Vantara_BRD.pdf` for scope and success criteria.
+3. Run `Notebook/Data_Preparation.ipynb` to regenerate the cleaned tables from raw data.
+4. Load `Database/Vantara_Database_Schema.sql` into PostgreSQL, then load the cleaned CSVs in order: `customers → products → location → date → fact_orders`.
+5. Run `SQL_Analysis/Vantara_Analysis_Queries.sql` against the database to reproduce the findings.
+6. Open `Data/Vantara_Analysis_Model.xlsx` and refresh to see the cross-check pivots.
+7. Open `Dashboard/Vantara_Supply_Chain_Dashboard.pbix` in Power BI Desktop, **or** explore the [live published dashboard](https://app.fabric.microsoft.com/links/7kEQOVZFb_?ctid=e93d71d6-b5c0-4b78-a861-d9964ecdfcd6&pbi_source=linkShare) in the browser.
+
+---
+
+## Final Recommendations & Future Work
+
 **Recommendations by priority:**
 
 | Priority | Action |
@@ -125,26 +191,7 @@ Vantara-Smart-Supply-Chain-Intelligence-Platform/
 
 Full write-up with business impact per finding: [`Docs/sql_Report.pdf`](Docs/sql_Report.pdf).
 
----
-
-## How to Run
-
-1. Clone the repo:
-   ```bash
-   git clone https://github.com/seema-kri/Vantara-Smart-Supply-Chain-Intelligence-Platform.git
-   ```
-2. Read `Docs/Vantara_BRD.pdf` for scope and success criteria.
-3. Run `Notebook/Data_Preparation.ipynb` to regenerate the cleaned tables from raw data.
-4. Load `Database/Vantara_Database_Schema.sql` into PostgreSQL, then load the cleaned CSVs in order: `customers → products → location → date → fact_orders`.
-5. Run `SQL_Analysis/Vantara_Analysis_Queries.sql` against the database to reproduce the findings.
-6. Open `Data/Vantara_Analysis_Model.xlsx` and refresh to see the cross-check pivots.
-7. Open `Dashboard/Vantara_Supply_Chain_Dashboard.pbix` in Power BI Desktop, **or** explore the [live published dashboard](https://app.fabric.microsoft.com/links/7kEQOVZFb_?ctid=e93d71d6-b5c0-4b78-a861-d9964ecdfcd6&pbi_source=linkShare) in the browser — no install required.
-
----
-
-## Future Work & Contact
-
-**Future work:**
+**Future Work:**
 - Automate SQL-vs-DAX reconciliation checks with a scheduled validation script so grain mismatches are caught before publishing.
 - Build the quartile-based customer-tier and order-cadence views identified in the findings but not yet in the dashboard.
 - Add a world-map / market-toggle visual to close the geographic scope gap.
@@ -154,7 +201,9 @@ Full write-up with business impact per finding: [`Docs/sql_Report.pdf`](Docs/sql
 
 **Skills demonstrated:** end-to-end pipeline ownership · relational database design (star schema) · advanced SQL (window functions, CTEs) · cross-tool KPI validation · requirements discipline (BRD-first) · Power BI/DAX development · executive communication.
 
-**Contact:**
+---
+
+## Author & Contact
 
 **Seema Kumari** — Business Analyst
 📧 [kriseema87@gmail.com](mailto:kriseema87@gmail.com) · 💼 [LinkedIn](https://linkedin.com/in/seema-kumari-375763308) · 💻 [GitHub](https://github.com/seema-kri)
